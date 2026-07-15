@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wadina Resort - Ledger &amp; Stock</title>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Wadina Resort" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#EFEAE0" />
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiV2FkaW5hIFJlc29ydCIsInNob3J0X25hbWUiOiJXYWRpbmEiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiI0VGRUFFMCIsInRoZW1lX2NvbG9yIjoiI0VGRUFFMCIsImljb25zIjpbXX0=" />
+<link rel="apple-touch-icon" href="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAEsASoDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDxXFFLilxTIEopaKAEopaKAEooNFACUUtFACUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQA==" />
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;500;700&display=swap');
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #EFEAE0;
+    font-family: 'Tajawal', 'Segoe UI', sans-serif;
+    color: #2B2620;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 24px 16px 60px; }
+  .ledger-title { font-family: 'Amiri', Georgia, serif; }
+  .num { font-variant-numeric: tabular-nums; }
+  input, select, button { font-family: 'Tajawal', sans-serif; }
+  input::placeholder { color: #9c9184; }
+
+  .header { text-align: center; margin-bottom: 20px; }
+  .logo { width: 92px; height: 92px; border-radius: 50%; object-fit: cover;
+          box-shadow: 0 3px 14px rgba(43,38,32,0.15); margin-bottom: 8px; }
+  .header h1 { font-size: 24px; margin: 0 0 2px; letter-spacing: 0.5px; }
+  .subtitle { font-size: 12.5px; color: #7a9e8f; letter-spacing: 1.5px; }
+  .rule { height: 2px; width: 90px; background: #5FA88C; margin: 10px auto 0; border-radius: 2px; }
+
+  .tabs { display: flex; gap: 6px; background: #e6ddc9; padding: 5px; border-radius: 10px; margin-bottom: 22px; }
+  .tab-btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 4px; border-radius: 7px; border: none; cursor: pointer;
+    font-size: 12.5px; font-weight: 700; background: transparent; color: #6b6152;
+    transition: all 0.15s ease;
+  }
+  .tab-btn.active { background: #2B2620; color: #EFEAE0; }
+
+  .card { background: #FBF8F2; border: 1px solid #DCD3C2; border-radius: 12px; padding: 18px; margin-bottom: 22px; }
+  .balance-card { padding: 22px 20px; box-shadow: 0 2px 10px rgba(43,38,32,0.06); }
+  .balance-label { font-size: 13px; color: #8a7f6e; margin-bottom: 4px; text-align: center; }
+  .balance-value { font-size: 38px; font-weight: 700; text-align: center; margin-bottom: 18px; }
+  .balance-value .unit { font-size: 16px; font-weight: 400; }
+  .stats-row { display: flex; gap: 12px; }
+  .stat-box { flex: 1; border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 8px; }
+  .stat-box.in { background: #eef4ee; }
+  .stat-box.out { background: #f7ecec; }
+  .stat-label-in { font-size: 12px; color: #5c6b5c; }
+  .stat-label-out { font-size: 12px; color: #7d5c5c; }
+  .stat-value-in { font-weight: 700; color: #2F5233; }
+  .stat-value-out { font-weight: 700; color: #7A2E2E; }
+
+  .amt-in { font-weight: 700; color: #2F5233; }
+  .amt-out { font-weight: 700; color: #7A2E2E; }
+  .icon-btn { background: none; border: none; cursor: pointer; color: #c2b8a8; padding: 4px; display: flex; }
+  .qty-btn { border: none; border-radius: 6px; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .qty-btn.minus { background: #f7ecec; color: #7A2E2E; }
+  .qty-btn.plus { background: #eef4ee; color: #2F5233; }
+
+  .loading { text-align: center; padding: 30px; color: #8a7f6e; }
+
+  .table-wrap { overflow-x: auto; border: 1px solid #DCD3C2; border-radius: 10px; background: #FBF8F2; }
+  .stock-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .stock-table thead th {
+    background: #e6ddc9; color: #4a4336; font-weight: 700; font-size: 12px;
+    padding: 10px 8px; text-align: center; border-bottom: 1px solid #DCD3C2; white-space: nowrap;
+  }
+  .stock-table thead th.col-name { text-align: left; padding-left: 12px; }
+  .stock-table tbody td {
+    padding: 9px 8px; text-align: center; border-bottom: 1px solid #ece5d6; vertical-align: middle;
+  }
+  .stock-table tbody tr.alt { background: #f3eee2; }
+  .stock-table tbody tr:last-child td { border-bottom: none; }
+  .stock-table td.col-name { text-align: left; padding-left: 12px; font-weight: 500; white-space: nowrap; }
+  .qty-cell { display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .qty-value-inline { min-width: 50px; display: inline-block; font-weight: 700; text-align: center; }
+
+  .low-banner {
+    background: #fdf3e3; border: 1px solid #e8c98a; border-radius: 10px; padding: 10px 14px;
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #8a5a1a;
+  }
+
+  input[type=text], input[type=number], select {
+    width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid #DCD3C2;
+    margin-bottom: 10px; font-size: 15px; background: #fff; color: #2B2620;
+  }
+  .row-2 { display: flex; gap: 8px; }
+  .row-2 input { flex: 1; }
+  .row-2 select { width: auto; }
+
+  .btn-primary {
+    width: 100%; padding: 12px 0; border-radius: 8px; border: none; background: #2B2620;
+    color: #EFEAE0; font-weight: 700; font-size: 15px; display: flex; align-items: center;
+    justify-content: center; gap: 6px; cursor: pointer;
+  }
+  .error-msg { color: #7A2E2E; font-size: 13px; margin-bottom: 8px; }
+  .confirm-msg { color: #2F5233; font-size: 13px; margin-bottom: 8px; }
+  .empty-msg { text-align: center; color: #a89d8c; padding: 30px 0; font-size: 14px; }
+  .list-label { font-size: 13px; color: #8a7f6e; margin-bottom: 10px; padding-left: 4px; display: flex; align-items: center; gap: 8px; }
+
+  .unlock-btn {
+    background: none; border: 1px solid #DCD3C2; border-radius: 6px; padding: 4px 10px;
+    cursor: pointer; font-size: 12px; color: #8a7f6e; display: inline-flex; align-items: center; gap: 4px;
+  }
+  .unlock-btn.unlocked { border-color: #2F5233; color: #2F5233; }
+
+  svg.icon { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <img class="logo" alt="Wadina Resort" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MiIgaGVpZ2h0PSI5MiIgdmlld0JveD0iMCAwIDkyIDkyIj48Y2lyY2xlIGN4PSI0NiIgY3k9IjQ2IiByPSI0NiIgZmlsbD0iIzJCMjYyMCIvPjx0ZXh0IHg9IjQ2IiB5PSI1NCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxNiIgZmlsbD0iI0VGRUFFMCIgZm9udC1mYW1pbHk9InNlcmlmIj5XYWRpbmE8L3RleHQ+PC9zdmc+" />
+    <h1 class="ledger-title">Wadina Resort</h1>
+    <div class="subtitle">Ledger &amp; Stock</div>
+    <div class="rule"></div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="ledger">📖 Ledger</button>
+    <button class="tab-btn" data-tab="kitchen">🍳 Kitchen</button>
+    <button class="tab-btn" data-tab="housekeeping">✨ Housekeeping</button>
+  </div>
+
+  <div id="content">
+    <div class="loading">Connecting to server...</div>
+  </div>
+
+</div>
+
+<script>
+/* ====================== FIREBASE CONFIG ====================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyDFBLQqec2t6sqC79UkZGsEpM-_bKMjbFQ",
+  authDomain: "wadina-resort.firebaseapp.com",
+  projectId: "wadina-resort",
+  storageBucket: "wadina-resort.firebasestorage.app",
+  messagingSenderId: "515745479490",
+  appId: "1:515745479490:web:f30ce459777c596a9166db"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const LEDGER_COL = "wadina_ledger";
+const KITCHEN_COL = "wadina_stock_kitchen";
+const HOUSEKEEPING_COL = "wadina_stock_housekeeping";
+const UNITS = ["kg", "g", "L", "ml", "pc", "pack", "bag"];
+const DELETE_CODE = "0508";
+
+function fmt(n) {
+  return (Number(n) || 0).toFixed(3);
+}
+
+function toNum(str) {
+  if (str == null) return NaN;
+  return parseFloat(String(str).trim().replace(",", "."));
+}
+
+const icons = {
+  plus: `<svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>`,
+  minus: `<svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14"/></svg>`,
+  trash: `<svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg>`,
+  warn: `<svg class="icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4m0 4h.01"/></svg>`,
+  lock: `<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+  unlock: `<svg class="icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`
+};
+
+let currentTab = localStorage.getItem("wadina_active_tab") || "ledger";
+// Ensure we don't load a removed tab
+if (currentTab === "report") currentTab = "ledger";
+let ledgerEntries = [];
+let kitchenItems = [];
+let housekeepingItems = [];
+let unsubscribers = [];
+let ledgerUnlocked = false;
+
+const contentEl = document.getElementById("content");
+
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  if (btn.dataset.tab === currentTab) {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  }
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentTab = btn.dataset.tab;
+    localStorage.setItem("wadina_active_tab", currentTab);
+    ledgerUnlocked = false; // Reset unlock when switching tabs
+    render();
+  });
+});
+
+function listenLedger() {
+  return db.collection(LEDGER_COL).orderBy("createdAt", "desc").onSnapshot(snap => {
+    ledgerEntries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (currentTab === "ledger") render();
+  }, err => console.error("ledger listen error", err));
+}
+
+function listenStock(colName, setter) {
+  return db.collection(colName).orderBy("createdAt", "desc").onSnapshot(snap => {
+    setter(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    if ((colName === KITCHEN_COL && currentTab === "kitchen") ||
+        (colName === HOUSEKEEPING_COL && currentTab === "housekeeping")) {
+      render();
+    }
+  }, err => console.error("stock listen error", err));
+}
+
+async function addLedgerEntry(type, amount, desc) {
+  await db.collection(LEDGER_COL).add({
+    type, amount, desc,
+    date: new Date().toISOString().slice(0, 10),
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
+async function removeLedgerEntry(id) {
+  await db.collection(LEDGER_COL).doc(id).delete();
+}
+
+async function addStockItem(colName, name, qty, unit, min, cost) {
+  return db.collection(colName).add({
+    name, qty, unit, min, cost: cost || 0,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
+async function adjustStockQty(colName, id, currentQty, delta) {
+  const next = Math.max(0, +(currentQty + delta).toFixed(2));
+  await db.collection(colName).doc(id).update({ qty: next });
+}
+
+async function removeStockItem(colName, id) {
+  await db.collection(colName).doc(id).delete();
+}
+
+function render() {
+  if (currentTab === "ledger") renderLedger();
+  else if (currentTab === "kitchen") renderStock(KITCHEN_COL, kitchenItems, "Item name (e.g. oil, flour...)");
+  else if (currentTab === "housekeeping") renderStock(HOUSEKEEPING_COL, housekeepingItems, "Item name (e.g. soap, cleaner...)");
+}
+
+function renderLedger() {
+  const dakhl = ledgerEntries.filter(e => e.type === "in").reduce((s, e) => s + e.amount, 0);
+  const kharj = ledgerEntries.filter(e => e.type === "out").reduce((s, e) => s + e.amount, 0);
+  const balance = dakhl - kharj;
+  const balanceColor = balance > 0 ? "#2F5233" : balance < 0 ? "#7A2E2E" : "#2B2620";
+
+  contentEl.innerHTML = `
+    <div class="card balance-card">
+      <div class="balance-label">Current Balance</div>
+      <div class="balance-value" style="color:${balanceColor}">${fmt(balance)} <span class="unit">RO</span></div>
+      <div class="stats-row">
+        <div class="stat-box in">
+          <div>
+            <div class="stat-label-in">Income</div>
+            <div class="stat-value-in num">${fmt(dakhl)}</div>
+          </div>
+        </div>
+        <div class="stat-box out">
+          <div>
+            <div class="stat-label-out">Expenses</div>
+            <div class="stat-value-out num">${fmt(kharj)}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="list-label">
+      <span>Transactions (${ledgerEntries.length})</span>
+      <button class="unlock-btn ${ledgerUnlocked ? 'unlocked' : ''}" id="unlockBtn">
+        ${ledgerUnlocked ? icons.unlock + ' Unlocked' : icons.lock + ' Delete'}
+      </button>
+    </div>
+    ${ledgerEntries.length === 0 ? `<div class="empty-msg">No transactions yet.</div>` : `
+    <div class="table-wrap">
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th class="col-name">Description</th>
+            <th>Amount</th>
+            <th>Date</th>
+            ${ledgerUnlocked ? '<th>Delete</th>' : ''}
+          </tr>
+        </thead>
+        <tbody id="ledgerList"></tbody>
+      </table>
+    </div>`}
+    <div id="unlockError" style="text-align:center;margin-top:8px;"></div>
+  `;
+
+  // Unlock button logic
+  document.getElementById("unlockBtn").onclick = () => {
+    if (ledgerUnlocked) {
+      ledgerUnlocked = false;
+      render();
+      return;
+    }
+    const code = prompt("Enter code to enable delete:");
+    if (code === DELETE_CODE) {
+      ledgerUnlocked = true;
+      render();
+    } else if (code !== null) {
+      const errEl = document.getElementById("unlockError");
+      errEl.innerHTML = `<span class="error-msg">Wrong code</span>`;
+      setTimeout(() => { errEl.innerHTML = ""; }, 2500);
+    }
+  };
+
+  const listEl = document.getElementById("ledgerList");
+  if (!listEl) return;
+
+  listEl.innerHTML = ledgerEntries.map((e, idx) => `
+    <tr class="${idx % 2 === 1 ? 'alt' : ''}">
+      <td class="col-name">${escapeHtml(e.desc)}</td>
+      <td class="num ${e.type === 'in' ? 'amt-in' : 'amt-out'}">${e.type === 'in' ? '+' : '-'}${fmt(e.amount)}</td>
+      <td>${e.date || ""}</td>
+      ${ledgerUnlocked ? `<td><button class="icon-btn" data-remove="${e.id}">${icons.trash}</button></td>` : ''}
+    </tr>
+  `).join("");
+
+  if (ledgerUnlocked) {
+    listEl.querySelectorAll("[data-remove]").forEach(btn => {
+      btn.onclick = () => {
+        if (confirm("Delete this transaction?")) {
+          removeLedgerEntry(btn.dataset.remove);
+        }
+      };
+    });
+  }
+}
+
+function renderStock(colName, items, placeholderName) {
+  const lowStock = items.filter(it => it.min > 0 && it.qty <= it.min);
+
+  contentEl.innerHTML = `
+    ${lowStock.length > 0 ? `
+      <div class="low-banner">
+        ${icons.warn}
+        <span>${lowStock.length} item(s) reached minimum level: ${lowStock.map(i => escapeHtml(i.name)).join(", ")}</span>
+      </div>` : ""}
+
+    <div class="card">
+      <input type="text" id="stockName" placeholder="${placeholderName}" />
+      <div class="row-2">
+        <input type="text" id="stockQty" placeholder="Quantity" />
+        <select id="stockUnit">
+          ${UNITS.map(u => `<option value="${u}">${u}</option>`).join("")}
+        </select>
+      </div>
+      <input type="text" id="stockMin" placeholder="Minimum level (optional)" />
+      <input type="text" id="stockCost" placeholder="Price (RO) (optional)" />
+      <div id="stockMsg"></div>
+      <button class="btn-primary" id="stockAddBtn">${icons.plus} Add Item</button>
+    </div>
+
+    <div class="list-label">Items in Stock (${items.length})</div>
+    ${items.length === 0 ? `<div class="empty-msg">No items yet. Add your first one above.</div>` : `
+    <div class="table-wrap">
+      <table class="stock-table">
+        <thead>
+          <tr>
+            <th class="col-name">Item</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody id="stockList"></tbody>
+      </table>
+    </div>`}
+  `;
+
+  document.getElementById("stockAddBtn").onclick = async () => {
+    const nameEl = document.getElementById("stockName");
+    const qtyEl = document.getElementById("stockQty");
+    const unitEl = document.getElementById("stockUnit");
+    const minEl = document.getElementById("stockMin");
+    const costEl = document.getElementById("stockCost");
+    const msgEl = document.getElementById("stockMsg");
+
+    if (!nameEl.value.trim()) {
+      msgEl.innerHTML = `<div class="error-msg">Enter item name</div>`;
+      return;
+    }
+    const q = toNum(qtyEl.value);
+    if (!qtyEl.value || isNaN(q) || q < 0) {
+      msgEl.innerHTML = `<div class="error-msg">Enter quantity</div>`;
+      return;
+    }
+    msgEl.innerHTML = "";
+
+    const name = nameEl.value.trim();
+    const min = minEl.value ? toNum(minEl.value) : 0;
+    const cost = costEl.value ? toNum(costEl.value) : 0;
+    await addStockItem(colName, name, q, unitEl.value, min, cost);
+
+    if (cost > 0) {
+      await addLedgerEntry("out", cost, `Purchase: ${name}`);
+      msgEl.innerHTML = `<div class="confirm-msg">Added ${fmt(cost)} RO to ledger as expense</div>`;
+      setTimeout(() => { msgEl.innerHTML = ""; }, 3000);
+    }
+
+    nameEl.value = ""; qtyEl.value = ""; minEl.value = ""; costEl.value = "";
+  };
+
+  const listEl = document.getElementById("stockList");
+  if (!listEl) return;
+
+  const sorted = [...items].sort((a, b) => a.name.localeCompare(b.name));
+
+  listEl.innerHTML = sorted.map((it, idx) => {
+    return `
+    <tr class="${idx % 2 === 1 ? 'alt' : ''}">
+      <td class="col-name">${escapeHtml(it.name)}</td>
+      <td>
+        <div class="qty-cell">
+          <button class="qty-btn minus" data-minus="${it.id}" data-qty="${it.qty}">${icons.minus}</button>
+          <span class="num qty-value-inline">${fmt(it.qty)} <span style="font-size:11px;font-weight:400">${it.unit}</span></span>
+          <button class="qty-btn plus" data-plus="${it.id}" data-qty="${it.qty}">${icons.plus}</button>
+        </div>
+      </td>
+      <td class="num">${it.cost > 0 ? fmt(it.cost) : "—"}</td>
+      <td>
+        <button class="icon-btn" data-remove="${it.id}">${icons.trash}</button>
+      </td>
+    </tr>
+  `;
+  }).join("");
+
+  listEl.querySelectorAll("[data-minus]").forEach(btn => {
+    btn.onclick = () => adjustStockQty(colName, btn.dataset.minus, parseFloat(btn.dataset.qty), -1);
+  });
+  listEl.querySelectorAll("[data-plus]").forEach(btn => {
+    btn.onclick = () => adjustStockQty(colName, btn.dataset.plus, parseFloat(btn.dataset.qty), 1);
+  });
+  listEl.querySelectorAll("[data-remove]").forEach(btn => {
+    btn.onclick = () => removeStockItem(colName, btn.dataset.remove);
+  });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str ?? "";
+  return div.innerHTML;
+}
+
+// Start real-time listeners
+unsubscribers.push(listenLedger());
+unsubscribers.push(listenStock(KITCHEN_COL, (v) => kitchenItems = v));
+unsubscribers.push(listenStock(HOUSEKEEPING_COL, (v) => housekeepingItems = v));
+</script>
+</body>
+</html>
